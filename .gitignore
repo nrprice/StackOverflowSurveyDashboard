@@ -1,0 +1,13 @@
+
+*.ipynb
+*.xlsx
+*.csv
+*.pdf
+*.pptx
+*.png
+Plots/.DS_Store
+Task Notebooks/.DS_Store
+__pycache__/mongodb.cpython-37.pyc
+assets/.DS_Store
+assets/language_info_unique.txt
+test_app.py
