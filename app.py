@@ -40,6 +40,17 @@ language_list = language_info
 comp_group_list = (list(survey_data['ConvertedCompGroup'].unique()))
 age_group_list = sorted(list(survey_data['AgeGroup'].unique()))
 
+ed_level_dict = {'I never completed any formal education': 0,
+                     'Primary/elementary school': 1,
+                     'Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)': 2,
+                     'Some college/university study without earning a degree': 3,
+                    'Bachelor’s degree (BA, BS, B.Eng., etc.)': 4,
+                     'Associate degree': 4,
+                    'Master’s degree (MA, MS, M.Eng., MBA, etc.)': 5,
+                    'Other doctoral degree (Ph.D, Ed.D., etc.)': 6,
+                    'Professional degree (JD, MD, etc.)': 6,
+                    np.nan: 0}
+
 # Create list for for ordering ConvertedCompGroup Categories
 comp_group_ordering = ['$0 to $24999',
                        '$25000 to $49999',
@@ -59,117 +70,140 @@ survey_data['ConvertedCompGroup'] = pd.Categorical(survey_data['ConvertedCompGro
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
+
+#Styling Dicts
 main_style = {'display': 'flex',
               'justify-content': 'center',
               'align-items': 'center',
               'height': '100%', 'width': '100%',
               'background-color': 'red'}
+
+background_color = "rgba(180, 180, 180, 0.2)"
+
+plot_background_color = "rgba(180, 180, 180, 0.0)"
+
+button_style = {'margin-left': '20px', 'margin-right': '20px'}
+
 # Layout
-graph = html.Div(dbc.Spinner(children=dcc.Graph(id='graph', config={'displayModeBar': False}), size='lg', color="blue", type="border"))
+graph = dbc.Spinner(children=dcc.Graph(id='graph',
+                                       config={'displayModeBar': False, 'responsive': True},
+                                       style={'height': '100%'}),
+                    size='lg', color="blue", type="border")
 
 comp_dropdown = dcc.Dropdown(id='comp',
                              options=[{'label': x, 'value': x} for x in comp_group_ordering],
                              placeholder='Salary Range',
-                             style={'width': '50%', 'textAlign': 'left'})
+                             style={'width': '75%', 'textAlign': 'left'},
+                             value=comp_group_ordering[0])
 
 age_input = dcc.Input(id='age',
                       placeholder='Age',
                       type='number',
                       maxLength='2',
                       inputMode='numeric',
-                      style={'width': '10%', 'textAlign': 'left'})
+                      style={'width': '25%', 'textAlign': 'left'},
+                      value=25)
 
-languages_checkbox = dcc.Checklist(id='languages',
-                                   options=[{'label': x, 'value': x} for x in language_list],
-                                   inputStyle={"margin-right": "5px", 'margin-left': '12px'},
-                                   value=['Python'],
-                                   style={'fontSize': '18px'},
-                                   labelClassName='Butt')
+education_input = dcc.Dropdown(id='edlevel',
+                               options=[{'label': k, 'value': v} for k,v in ed_level_dict.items()],
+                               placeholder='Education',
+                               style={'width': '100%', 'textAlign': 'left'},
+                               value=1)
+
+languages_checkbox = dcc.Dropdown(id='languages',
+                                  options=[{'label': x, 'value': x} for x in language_list],
+                                  placeholder='Languages',
+                                  style={'width': '75%', 'textAlign': 'left'},
+                                  multi=True,
+                                  value=['Python'])
+
+# languages_checkbox = dcc.Checklist(id='languages',
+#                                    options=[{'label': x, 'value': x} for x in language_list],
+#                                    inputStyle={"margin-right": "5px", 'margin-left': '12px'},
+#                                    value=['Python'],
+#                                    style={'fontSize': '18px'},
+#                                    labelClassName='Butt',
+#                                    )
 
 advice_list = html.Div(id='advice_text', style={'line-height': '180%'})
 
 hidden_json = html.Div(id='hidden_json', style={'display': 'none'})
 
-col_1_layout = [html.Div([html.Br(), html.Br(), html.H1('Salary Comparison & Career Advice')]),
-                html.Div(html.P('''
-                Initially this project was a simple analysis for the final module of the
-                IBM Data Analyst Professional certificate.
-                Once I was finished I wanted to explore what else was possible with this data-set.
-                                I prefer to make projects that serve a purpose, or answer a specific question.
-                ''')),
-                html.Div(html.P('''
+
+title = html.H1('Salary Comparison', style={'textAlign': 'center'})
+
+col_1_layout = html.P('''
+                This dashboard allows users to compare their current skill set to other programmers across the world.
+                It also outputs information unique to the user giving them a breakdown of the differences between
+                them, and the other respondents.
+                '''),\
+               html.P('''
                 The data is a survey conducted by Stack Overflow asking over 11,000 users questions
                 about their careers, education, current expertise, desired future expertise etc.
-                With this dashboard users are able to see where they lie in relation to other programmers
-                by specifying their salary range, age and current skill set.
-                ''')),
-                html.Div(html.P("""
-                Behind the scenes we're doing a doppleganger search.
-                Looking for respondents similar to the user.
-                By default the graph shows all respondents salary information,
-                when the user enters their information they are able to see their 'dopplegangers'
-                who have a similar skill set and salary range. As well as respondents who reported a higher salary.
-                """)),
-                html.Div(html.P('''
-                In the advice section users can see unique advice detailing the difference
-                between them, and respondents with a higher salary.
-                '''))]
+                '''),\
+               html.P("""
+                The data is hosted on a MongoDB server and is retrieved on page load.
+                We then perform a 'doppleganger' search on the users information. Returning a graph showing
+                'people like you' which are respondents who have similar characteristics to the user.
+                """),\
+               html.P('''
+                Click below to see the slide deck, the github repository for this project, and the Jupyter Notebook
+                where the initial data analysis was done.
+                ''')
 
-col_2_layout = [html.Div([html.Br(), html.Br(), html.H1('User Information')]),
-                html.Div([html.H4('Please select salary range:'), comp_dropdown]),
-                html.Div([html.H4('Please input age:'), age_input]),
-                html.Div([html.H4('Please select languages known'), languages_checkbox]),
+col_2_div_style = {'margin-top': '15px'}
+col_2_layout = [html.Div([html.H5('Please input age:'), age_input]),
+                html.Div([html.H5('Please select education level:', style=col_2_div_style), education_input]),
+                html.Div([html.H5('Please select languages known', style=col_2_div_style), languages_checkbox]),
+                html.Div([html.H5('Please select salary range:', style=col_2_div_style), comp_dropdown]),
                 html.Div(html.Br())
                 ]
 
-background_color = "rgba(180, 180, 180, 0.2)"
-
-plot_background_color = "rgba(180, 180, 180, 0.0)"
-
-
 app.layout = dbc.Container([
-                    dbc.Row([
-                            dbc.Col([dbc.Row(col_1_layout), dbc.Row('Row2')],
-                                    width=6,
-                                    style={'display': 'flex',
-                                           'flex-direction': 'column',
-                                           "background-color": background_color,
-                                           'justify-content': 'space-around',
-                                           'height': '100%',
-                                           'font-size': '2.5ch',
-                                           'padding': '2em'}),
-                            dbc.Col(col_2_layout,
-                                    width=6,
-                                    style={'display': 'flex',
-                                           'flex-direction': 'column',
-                                           "background-color": background_color,
-                                           'justify-content': 'space-around',
-                                           'height': '100%',
-                                           'padding': '2em'})],
-                            className='h-50'),
-                    dbc.Row([
-                        dbc.Col(graph,
-                                width=6,
-                                style={'display': 'flex',
-                                       'flex-direction': 'column',
-                                       "background-color": background_color,
-                                       'justify-content': 'center',
-                                       'height': '100%',
-                                       'width': '100%',
-                                       'margin': '0'}),
-                        dbc.Col([advice_list],
-                                width=6,
-                                style={'display': 'inline-flex',
-                                       'flex-direction': 'column',
-                                       "background-color": background_color,
-                                       'justify-content': 'center',
-                                       'height': '100%',
-                                       'line-height': '140%',
-                                       'font-size': 'large',
-                                       'padding': '2em'})
+                            dbc.Row([
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody(title)])
 
-                    ], className='h-50'),
-                    dbc.Row(hidden_json, className='h-0', style={'display': 'none'}),
+                                    ], width={"size": 4, "offset": 4})
+                            ], className='m-4'),
+                            dbc.Row([
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody(col_1_layout, style={"display": "flex",
+                                                                                'flex-direction': 'column',
+                                                                                'justify-content': 'space-between',
+                                                                                'height': '100%'})],
+                                            style={'height': '100%'})
+                                    ], width={"size": 7, "offset": 1}),
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody(col_2_layout)], style={"display": "flex",
+                                                                                'flex-direction': 'column',
+                                                                                'justify-content': 'space-between',
+                                                                                'height': '100%'})
+                                    ], width={"size": 3, "offset": 0}, style={})
+                            ], className='m-4'),
+                            dbc.Row([
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody(graph)], style={"display": "flex",
+                                                                                'flex-direction': 'column',
+                                                                                'justify-content': 'center',
+                                                                                'height': '100%'})
+                                    ], width={"size": 4, "offset": 1}, style={}),
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody(advice_list, style={"display": "flex",
+                                                                                'flex-direction': 'column',
+                                                                                'justify-content': 'center',
+                                                                                'align-items': 'center',
+                                                                                'height': '100%'})
+                                        ])
+                                    ], width={"size": 6})
+                            ], className='m-4'),
+                            dbc.Row(hidden_json, style={'display': 'none'})
+
 
 
 ], fluid=True, style={'height': '100vh', 'width': '100vw'})
@@ -247,14 +281,13 @@ def interactive_graph(hidden_json_data, comp):
     :return: A plotly figure to be displayed with id='graph
     """
 
-
     figure = go.Figure()
     figure.update_layout(autosize=True,
                          paper_bgcolor=plot_background_color,
                          plot_bgcolor=plot_background_color,
                          yaxis_range=[0, 250000],
                          xaxis_visible=False,
-                         margin=dict(l=0, r=0, t=50, b=0),
+                         margin=dict(l=0, r=0, t=0, b=0),
                          title='Salaries',
                          title_font_size=25,
                          )
@@ -301,7 +334,7 @@ def interactive_graph(hidden_json_data, comp):
     figure.add_trace(go.Scatter(x=people_like_you['Respondent'],
                                 y=people_like_you['ConvertedComp'],
                                 mode='markers',
-                                marker_color='blue',
+                                marker_color='#0069D9',
                                 name='People Like You',
                                 marker_size=10))
 
@@ -320,9 +353,11 @@ def interactive_graph(hidden_json_data, comp):
     Input(component_id='hidden_json', component_property='children'),
     Input(component_id='languages', component_property='value'),
     Input(component_id='age', component_property='value'),
-    Input(component_id='comp', component_property='value')
+    Input(component_id='comp', component_property='value'),
+    Input(component_id='edlevel', component_property='value')
 )
-def give_advice(hidden_json_data, languages, age, comp):
+def give_advice(hidden_json_data, languages, age, comp, edlevel):
+
     """
 
     :param hidden_json_data: The return value of the create_data function.
@@ -333,7 +368,7 @@ def give_advice(hidden_json_data, languages, age, comp):
              to be put into the div with id='advice_text
     """
     data = pd.read_json(hidden_json_data, orient='split')
-    while age is None and comp is None:
+    while age is None or comp is None or edlevel is None:
         return html.P('Please enter age & salary to see individual advice', style={'textAlign': 'center'})
     higher_earners = data[data['status'] == 'Higher Earner']
     lower_earners = data[data['status'] == 'Lower Earner']
@@ -419,8 +454,29 @@ def give_advice(hidden_json_data, languages, age, comp):
     job_sat_string = f"{string_suffix} {percent_satisfied_high_earners}% of higher earners report being satisifed" \
                      f" in their job compared to {percent_satisfied_people_like_you}% of people similar to you"
 
-    return_string_list = [country_string, age_string, language_string, job_sat_string]
-    return_options_list = ['Location', 'Age', 'Languges', 'Job Satisfaction']
+    # Education Level
+    edu_high_earners = higher_earners[higher_earners['EdLevelVal'] >= edlevel].groupby(['EdLevel', 'EdLevelVal'])['Respondent'].count().reset_index().sort_values('Respondent', ascending=False)
+    most_common_edu_level = edu_high_earners.iloc[[0]]['EdLevel'].values[0]
+    most_common_edu_level = most_common_edu_level.split('(')[0]
+
+    print (most_common_edu_level)
+    percent_higher_edlevelval = edu_high_earners[edu_high_earners['EdLevelVal'] > edlevel]['Respondent'].sum() / edu_high_earners['Respondent'].sum()
+    percent_higher_edlevelval = round(percent_higher_edlevelval, 2) * 100
+    if percent_higher_edlevelval > 0:
+        ed_level_string_suffix = f"Schools in session!"
+        ed_level_string = f"{ed_level_string_suffix} {percent_higher_edlevelval}% have a higher level of education than you." \
+                          f" With the most common being a {most_common_edu_level}"
+    if percent_higher_edlevelval == 0:
+        ed_level_string = "School is not the problem! Those earning more than you have the same level of education."
+
+
+    print (percent_higher_edlevelval)
+
+
+
+    # Merge and return the various strings
+    return_string_list = [country_string, age_string, language_string, job_sat_string, ed_level_string]
+    return_options_list = ['Location', 'Age', 'Languges', 'Job Satisfaction', 'Education Level']
     return_string = [html.Div([html.H5(title), html.P(advice)]) for
                      advice, title in zip(return_string_list, return_options_list)]
     return_string.insert(0, html.H1('Advice'))
