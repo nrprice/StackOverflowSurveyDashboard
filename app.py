@@ -1,5 +1,6 @@
 # Library Imports
 from load_data import survey_data, language_info
+from graph_creation import *
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
@@ -25,6 +26,24 @@ def add_comma(number):
     comma_position_dict = {4: 1, 5: 2, 6: 3}
     comma_position = comma_position_dict[len(number)]
     return f"${number[:comma_position]},{number[comma_position:]}"
+
+def get_job_sat_percent(jobsat, option='satisfied'):
+    """
+
+    :param jobsat: Pass either higher_earners or people like you dataframe
+    :param option: Specify either 'satisfied' or 'dissatisfied'
+    :return: A integer percentage of respondents satisfaction value
+    """
+    if option is 'satisfied':
+        mood = ['Very satisfied', 'Slightly satisfied']
+    if option is 'dissatisfied':
+        mood = ['Very dissatisfied', 'Slightly dissatisfied']
+    jobsat = jobsat.groupby('JobSat')['Respondent'].count()
+    total = jobsat.sum()
+    mood_total = jobsat[jobsat.index.isin(mood)].count()
+    mood_percentage = (mood_total / total) * 100
+
+    return round(mood_percentage)
 
 
 # ----Old methods for reading in data prior to MongoDB implementation----
@@ -80,15 +99,15 @@ main_style = {'display': 'flex',
 
 background_color = "rgba(180, 180, 180, 0.2)"
 
-plot_background_color = "rgba(180, 180, 180, 0.0)"
+
 
 button_style = {'margin-left': '20px', 'margin-right': '20px'}
 
 # Layout
-graph = dbc.Spinner(children=dcc.Graph(id='graph',
-                                       config={'displayModeBar': False, 'responsive': True},
-                                       style={'height': '100%'}),
-                    size='lg', color="blue", type="border")
+# all_salaries_graph = dbc.Spinner(children=dcc.Graph(id='all_salaries_graph',
+#                                        config={'displayModeBar': False, 'responsive': True},
+#                                        style={'height': '100%'}),
+#                     size='lg', color="blue", type="border")
 
 comp_dropdown = dcc.Dropdown(id='comp',
                              options=[{'label': x, 'value': x} for x in comp_group_ordering],
@@ -128,7 +147,6 @@ languages_checkbox = dcc.Dropdown(id='languages',
 advice_list = html.Div(id='advice_text', style={'line-height': '180%'})
 
 hidden_json = html.Div(id='hidden_json', style={'display': 'none'})
-
 
 title = html.H1('Salary Comparison', style={'textAlign': 'center'})
 
@@ -187,7 +205,14 @@ app.layout = dbc.Container([
                             dbc.Row([
                                     dbc.Col([
                                         dbc.Card([
-                                            dbc.CardBody(graph)], style={"display": "flex",
+                                            dbc.CardBody([
+                                                        dcc.Tabs(id='tab', value='jobsat_comparison_graph',
+                                                                 children=[dcc.Tab(label='All Salaries', value='all_salaries_graph'),
+                                                                           dcc.Tab(label='Age Comparison', value='age_comparison_graph'),
+                                                                           dcc.Tab(label='Languages', value='language_comparison_graph'),
+                                                                           dcc.Tab(label='Job Satisfaction', value='jobsat_comparison_graph')
+                                                                           ]), html.Div(id='tab_content')]
+                                            )], style={"display": "flex",
                                                                                 'flex-direction': 'column',
                                                                                 'justify-content': 'center',
                                                                                 'height': '100%'})
@@ -269,7 +294,7 @@ def create_data(comp, languages, age):
 
 
 @app.callback(
-    Output(component_id='graph', component_property='figure'),
+    Output(component_id='all_salaries_graph', component_property='figure'),
     Input(component_id='hidden_json', component_property='children'),
     Input(component_id='comp', component_property='value')
 )
@@ -428,21 +453,10 @@ def give_advice(hidden_json_data, languages, age, comp, edlevel):
                       f"On average it raises salaries by {highest_value_language_mean}"
 
     # Create Job Satisfaction String
-    def get_percent(jobsat, option='satisfied'):
 
-        if option == 'satisfied':
-            mood = ['Very satisfied', 'Slightly satisfied']
-        else:
-            mood = ['Very dissatisfied', 'Slightly dissatisfied']
-        jobsat = jobsat.groupby('JobSat')['Respondent'].count()
-        total = jobsat.sum()
-        mood_total = jobsat[jobsat.index.isin(mood)].count()
-        mood_percentage = (mood_total / total) * 100
 
-        return round(mood_percentage)
-
-    percent_satisfied_high_earners = get_percent(higher_earners)
-    percent_satisfied_people_like_you = get_percent(people_like_you)
+    percent_satisfied_high_earners = get_job_sat_percent(higher_earners)
+    percent_satisfied_people_like_you = get_job_sat_percent(people_like_you)
 
     if percent_satisfied_high_earners > percent_satisfied_people_like_you:
         string_suffix = f"It might be time for a job move!"
@@ -459,7 +473,6 @@ def give_advice(hidden_json_data, languages, age, comp, edlevel):
     most_common_edu_level = edu_high_earners.iloc[[0]]['EdLevel'].values[0]
     most_common_edu_level = most_common_edu_level.split('(')[0]
 
-    print (most_common_edu_level)
     percent_higher_edlevelval = edu_high_earners[edu_high_earners['EdLevelVal'] > edlevel]['Respondent'].sum() / edu_high_earners['Respondent'].sum()
     percent_higher_edlevelval = round(percent_higher_edlevelval, 2) * 100
     if percent_higher_edlevelval > 0:
@@ -468,10 +481,6 @@ def give_advice(hidden_json_data, languages, age, comp, edlevel):
                           f" With the most common being a {most_common_edu_level}"
     if percent_higher_edlevelval == 0:
         ed_level_string = "School is not the problem! Those earning more than you have the same level of education."
-
-
-    print (percent_higher_edlevelval)
-
 
 
     # Merge and return the various strings
@@ -484,6 +493,60 @@ def give_advice(hidden_json_data, languages, age, comp, edlevel):
 
     return return_string
 
+
+@app.callback(
+    Output(component_id='tab_content', component_property='children'),
+    Input(component_id='hidden_json', component_property='children'),
+    Input(component_id='comp', component_property='value'),
+    Input(component_id='tab', component_property='value'),
+    Input(component_id='age', component_property='value'),
+    Input(component_id='languages', component_property='value'),
+
+)
+def select_graph(hidden_json_data, comp, tab, age, languages):
+    # Data contains the slice of only respondents similar to the user.
+    data = pd.read_json(hidden_json_data, orient='split')
+
+    # Following slices are self explanatory
+    higher_earners = data[data['status'] == 'Higher Earner']
+    people_like_you = data[data['status'] == 'People Like You']
+
+
+    # Required to be able to order by categories.
+    data['ConvertedCompGroup'] = pd.Categorical(data['ConvertedCompGroup'],
+                                                categories=comp_group_ordering,
+                                                ordered=True)
+    figure = go.Figure()
+
+    # ----All Graph Creation is handled by graph_creation.py----
+    # The output of those functions are then passed back within each if statement
+
+    if tab == 'all_salaries_graph' and comp is None:
+        figure = figure_settings_salary_graph(figure)
+        figure = empty_salary_graph(figure, survey_data)
+        return dcc.Graph(figure=figure, config={'displayModeBar': False, 'responsive': True},
+                         style={'height': '100%'})
+
+    if tab == 'all_salaries_graph' and comp is not None:
+        figure = figure_settings_salary_graph(figure)
+        figure = all_salaries_graph(figure, survey_data, people_like_you, higher_earners)
+        return dcc.Graph(figure=figure, config={'displayModeBar': False, 'responsive': True},
+                         style={'height': '100%'})
+
+    if tab == 'age_comparison_graph' and comp is not None:
+        figure = age_comparison_graph(figure, survey_data, age)
+        return dcc.Graph(figure=figure, config={'displayModeBar': False, 'responsive': True},
+                         style={'height': '100%'})
+
+    if tab == 'language_comparison_graph' and comp is not None:
+        language_comparison_graph(figure, survey_data, languages)
+        return dcc.Graph(figure=figure, config={'displayModeBar': False, 'responsive': True},
+                         style={'height': '100%'})
+
+    if tab == 'jobsat_comparison_graph' and comp is not None:
+        figure = jobsat_comparison_graph(figure, data, people_like_you, higher_earners)
+        return dcc.Graph(figure=figure, config={'displayModeBar': False, 'responsive': True},
+                         style={'height': '100%'})
 
 if __name__ == '__main__':
     app.run_server()
