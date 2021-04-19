@@ -1,6 +1,5 @@
 *.xlsx
 *.csv
-*.pdf
 *.pptx
 *.png
 Plots/.DS_Store
