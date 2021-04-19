@@ -1,8 +1,5 @@
-
-*.ipynb
 *.xlsx
 *.csv
-*.pdf
 *.pptx
 *.png
 Plots/.DS_Store
@@ -11,3 +8,17 @@ __pycache__/mongodb.cpython-37.pyc
 assets/.DS_Store
 assets/language_info_unique.txt
 test_app.py
+Task Notebooks/.ipynb_checkpoints/Collecting_job_data_using_APIs-Lab-checkpoint.ipynb
+Task Notebooks/.ipynb_checkpoints/M3ExploratoryDataAnalysis-lab-checkpoint.ipynb
+Task Notebooks/.ipynb_checkpoints/Web-Scraping-Lab-checkpoint.ipynb
+Task Notebooks/API & Web Scrape.ipynb
+Task Notebooks/Collecting_job_data_using_APIs-Lab.ipynb
+Task Notebooks/M1ExploreDataSet-lab.ipynb
+Task Notebooks/M2DataWrangling-lab.ipynb
+Task Notebooks/M3ExploratoryDataAnalysis-lab.ipynb
+Task Notebooks/M4DataVisualization-lab.ipynb
+Task Notebooks/Web-Scraping-Lab.ipynb
+Task Notebooks/Web-Scraping-Review-Lab.ipynb
+__pycache__/load_data.cpython-37.pyc
+.ipynb_checkpoints/Final Presentation-checkpoint.ipynb
+assets/.ipynb_checkpoints/API & Web Scrape-checkpoint.ipynb
