@@ -1,5 +1,5 @@
 # Library Imports
-from mongodb import survey_data, language_info
+from load_data import survey_data, language_info
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
@@ -17,7 +17,7 @@ def add_comma(number):
 
     """
     Takes a integer or float
-    Returns a string with the apppropriate comma position
+    Returns a string with the appropriate comma position
     """
 
     number = round(number)
@@ -36,8 +36,6 @@ def add_comma(number):
 
 
 # Create Lists for Dropdown
-
-
 language_list = language_info
 comp_group_list = (list(survey_data['ConvertedCompGroup'].unique()))
 age_group_list = sorted(list(survey_data['AgeGroup'].unique()))
@@ -67,7 +65,7 @@ main_style = {'display': 'flex',
               'height': '100%', 'width': '100%',
               'background-color': 'red'}
 # Layout
-graph = dbc.Spinner(children=dcc.Graph(id='graph', config={'displayModeBar': False}), size='lg', color="blue", type="border")
+graph = html.Div(dbc.Spinner(children=dcc.Graph(id='graph', config={'displayModeBar': False}), size='lg', color="blue", type="border"))
 
 comp_dropdown = dcc.Dropdown(id='comp',
                              options=[{'label': x, 'value': x} for x in comp_group_ordering],
@@ -94,26 +92,26 @@ hidden_json = html.Div(id='hidden_json', style={'display': 'none'})
 
 col_1_layout = [html.Div([html.Br(), html.Br(), html.H1('Salary Comparison & Career Advice')]),
                 html.Div(html.P('''
-                Initially this project was a simple analysis for the final module of the 
-                IBM Data Analyst Professional certificate. 
+                Initially this project was a simple analysis for the final module of the
+                IBM Data Analyst Professional certificate.
                 Once I was finished I wanted to explore what else was possible with this data-set.
                                 I prefer to make projects that serve a purpose, or answer a specific question.
                 ''')),
                 html.Div(html.P('''
-                The data is a survey conducted by Stack Overflow asking over 11,000 users questions 
-                about their careers, education, current expertise, desired future expertise etc. 
-                With this dashboard users are able to see where they lie in relation to other programmers 
+                The data is a survey conducted by Stack Overflow asking over 11,000 users questions
+                about their careers, education, current expertise, desired future expertise etc.
+                With this dashboard users are able to see where they lie in relation to other programmers
                 by specifying their salary range, age and current skill set.
                 ''')),
                 html.Div(html.P("""
-                Behind the scenes we're doing a doppleganger search. 
-                Looking for respondents similar to the user. 
-                By default the graph shows all respondents salary information, 
-                when the user enters their information they are able to see their 'dopplegangers' 
+                Behind the scenes we're doing a doppleganger search.
+                Looking for respondents similar to the user.
+                By default the graph shows all respondents salary information,
+                when the user enters their information they are able to see their 'dopplegangers'
                 who have a similar skill set and salary range. As well as respondents who reported a higher salary.
                 """)),
                 html.Div(html.P('''
-                In the advice section users can see unique advice detailing the difference 
+                In the advice section users can see unique advice detailing the difference
                 between them, and respondents with a higher salary.
                 '''))]
 
@@ -131,16 +129,15 @@ plot_background_color = "rgba(180, 180, 180, 0.0)"
 
 app.layout = dbc.Container([
                     dbc.Row([
-                            dbc.Col(col_1_layout,
+                            dbc.Col([dbc.Row(col_1_layout), dbc.Row('Row2')],
                                     width=6,
                                     style={'display': 'flex',
                                            'flex-direction': 'column',
                                            "background-color": background_color,
                                            'justify-content': 'space-around',
                                            'height': '100%',
-                                           'margin-top': '0px',
-                                           'margin-bottom': '0px',
-                                           'font-size': '2.5ch'}),
+                                           'font-size': '2.5ch',
+                                           'padding': '2em'}),
                             dbc.Col(col_2_layout,
                                     width=6,
                                     style={'display': 'flex',
@@ -148,8 +145,7 @@ app.layout = dbc.Container([
                                            "background-color": background_color,
                                            'justify-content': 'space-around',
                                            'height': '100%',
-                                           'margin-top': '0px',
-                                           'margin-bottom': '0px'})],
+                                           'padding': '2em'})],
                             className='h-50'),
                     dbc.Row([
                         dbc.Col(graph,
@@ -168,9 +164,9 @@ app.layout = dbc.Container([
                                        "background-color": background_color,
                                        'justify-content': 'center',
                                        'height': '100%',
-                                       'margin': '0px',
                                        'line-height': '140%',
-                                       'font-size': 'large'})
+                                       'font-size': 'large',
+                                       'padding': '2em'})
 
                     ], className='h-50'),
                     dbc.Row(hidden_json, className='h-0', style={'display': 'none'}),
