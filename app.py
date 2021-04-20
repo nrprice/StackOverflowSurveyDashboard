@@ -80,7 +80,7 @@ button_style = {'margin-left': '20px', 'margin-right': '20px', 'margin-bottom': 
 # all_salaries_graph = dbc.Spinner(children=dcc.Graph(id='all_salaries_graph',
 #                                        config={'displayModeBar': False, 'responsive': True},
 #                                        style={'height': '100%'}),
-#                     size='lg', color="blue", type="border")
+#                     size='xl', color="blue", type="border")
 
 comp_dropdown = dcc.Dropdown(id='comp',
                              options=[{'label': x, 'value': x} for x in comp_group_ordering],
@@ -156,7 +156,7 @@ app.layout = dbc.Container([
                                         dbc.Card([
                                             dbc.CardBody(title)])
 
-                                    ], width={"size": 4, "offset": 4})
+                                    ], xl={"size": 4, "offset": 4}, lg={"size": 12, "offset": 0})
                                     ], className='m-4'),
                             dbc.Row([
                                     dbc.Col([
@@ -181,30 +181,30 @@ app.layout = dbc.Container([
                                                             'margin-left': '15px',
                                                             'margin-right': '15px'})],
                                             style={'height': '100%'})
-                                    ], width={"size": 7, "offset": 1}),
+                                    ], xl={"size": 7, "offset": 1}, lg={"size": 12, "offset": 0}),
                                     dbc.Col([
                                         dbc.Card([
                                             dbc.CardBody(col_2_layout)], style={"display": "flex",
                                                                                 'flex-direction': 'column',
                                                                                 'justify-content': 'space-between',
                                                                                 'height': '100%'})
-                                    ], width={"size": 3, "offset": 0}, style={})
+                                    ], xl={"size": 3, "offset": 0}, lg={"size": 12, "offset": 0})
                                     ], className='m-4'),
                             dbc.Row([
                                     dbc.Col([
                                         dbc.Card([
                                             dbc.CardHeader([
                                                 dcc.Tabs(id='tab', value='all_salaries_graph',
-                                                         children=[dcc.Tab(label='Compensation Comparison',
+                                                         children=[dcc.Tab(label='Salaries',
                                                                            value='all_salaries_graph'),
                                                                    dcc.Tab(label='Average Age',
                                                                            value='age_comparison_graph'),
                                                                    dcc.Tab(label='Languages Known',
                                                                            value='language_comparison_graph'),
-                                                                   dcc.Tab(label='Job Satisfaction Rates',
+                                                                   dcc.Tab(label='Job Satisfaction',
                                                                            value='jobsat_comparison_graph')]),
                                                 dbc.CardBody([dbc.Spinner(html.Div(id='tab_content'),
-                                                                          size='lg',
+                                                                          size='xl',
                                                                           color="blue",
                                                                           type="border")
                                                               ])
@@ -213,11 +213,11 @@ app.layout = dbc.Container([
                                                        'flex-direction': 'column',
                                                        'justify-content': 'center',
                                                        'height': '100%'})
-                                    ], width={"size": 4, "offset": 1}, style={}),
+                                    ], xl={"size": 4, "offset": 1}, lg={"size": 12, "offset": 0}),
                                     dbc.Col([
                                         dbc.Card([
                                             dbc.CardBody(dbc.Spinner(advice_list,
-                                                                     size='lg',
+                                                                     size='xl',
                                                                      color="blue",
                                                                      type="border"), style={"display": "flex",
                                                                                           'flex-direction': 'column',
@@ -229,7 +229,7 @@ app.layout = dbc.Container([
                                                   'justify-content': 'center',
                                                   'align-items': 'center',
                                                   'height': '100%'})
-                                    ], width={"size": 6})
+                                    ], xl={"size": 6}, lg={"size": 12, "offset": 0})
                                     ], className='m-4'),
                             dbc.Row(hidden_json, style={'display': 'none'})
 
@@ -578,7 +578,7 @@ def select_graph(hidden_json_data, tab, age, edlevelval, languages, comp):
             return html.H3("You're too unique! We can't find anyone like you.")
 
     # String to be returned while elements of none_check_list remain == None
-    error_string = html.H3('Please enter user information for more detail.')
+    error_string = html.Div([html.H3('Please enter user information for more detail.'), dcc.Graph(figure=go.Figure())])
 
     # Checks current active tab and if user has made all choices
     # If both are true passes the data and figure created above to the functions from create_graphs.py

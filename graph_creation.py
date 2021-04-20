@@ -41,6 +41,9 @@ def get_job_sat_percent(jobsat, option='satisfied'):
     :param option: Specify either 'satisfied' or 'dissatisfied'
     :return: A integer percentage of respondents satisfaction value
     """
+
+    if len(jobsat) == 0:
+        return 0
     mood = ''
     if option == 'satisfied':
         mood = ['Very satisfied', 'Slightly satisfied']
