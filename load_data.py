@@ -1,5 +1,6 @@
 import pymongo
 import pandas as pd
+from bson.objectid import ObjectId
 pd.set_option("display.max_columns", 50)
 pd.set_option("display.max_rows", 400000)
 pd.set_option("display.width", 1000)
@@ -29,7 +30,9 @@ if insert is True:
     # Insert survey data and language info into collection
     insert_data = collection.insert_many(records)
 
-# .find() returns a list containing the documents.
+
+
+# Find data by object ID
 survey_data = collection.find()[0]
 language_info = collection.find()[1]['index']
 
