@@ -1,4 +1,4 @@
-from app import get_job_sat_percent, language_info
+from load_data import language_info
 import pandas as pd
 import plotly.graph_objs as go
 
@@ -17,6 +17,41 @@ comp_group_ordering = ['$0 to $24999',
                        '$175000 to $199999',
                        '$200000 to $224999',
                        '$225000 to $249999']
+
+
+
+def add_comma(number):
+
+    """
+    Takes a integer or float
+    Returns a string with the appropriate comma position
+    """
+
+    number = round(number)
+    number = str(number)
+    comma_position_dict = {4: 1, 5: 2, 6: 3}
+    comma_position = comma_position_dict[len(number)]
+    return f"${number[:comma_position]},{number[comma_position:]}"
+
+
+def get_job_sat_percent(jobsat, option='satisfied'):
+    """
+
+    :param jobsat: Pass either higher_earners or people like you dataframe
+    :param option: Specify either 'satisfied' or 'dissatisfied'
+    :return: A integer percentage of respondents satisfaction value
+    """
+    mood = ''
+    if option == 'satisfied':
+        mood = ['Very satisfied', 'Slightly satisfied']
+    if option == 'dissatisfied':
+        mood = ['Very dissatisfied', 'Slightly dissatisfied']
+    jobsat = jobsat.groupby('JobSat')['Respondent'].count()
+    total = jobsat.sum()
+    mood_total = jobsat[jobsat.index.isin(mood)].count()
+    mood_percentage = (mood_total / total) * 100
+
+    return round(mood_percentage)
 
 def figure_settings_salary_graph(figure):
 
