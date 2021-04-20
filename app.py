@@ -80,6 +80,10 @@ ed_level_dict = {'I never completed any formal education': 0,
                     'Professional degree (JD, MD, etc.)': 6,
                     np.nan: 0}
 
+# Create app instance & server
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
+
 # Create list for for ordering ConvertedCompGroup Categories
 comp_group_ordering = ['$0 to $24999',
                        '$25000 to $49999',
@@ -94,10 +98,6 @@ comp_group_ordering = ['$0 to $24999',
 survey_data['ConvertedCompGroup'] = pd.Categorical(survey_data['ConvertedCompGroup'],
                                                    categories=comp_group_ordering,
                                                    ordered=True)
-
-# Create app instance & server
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
 
 # Styling Dicts
 main_style = {'display': 'flex',

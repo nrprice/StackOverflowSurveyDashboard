@@ -1,4 +1,4 @@
-from app import comp_group_ordering, get_job_sat_percent, language_info
+from app import get_job_sat_percent, language_info
 import pandas as pd
 import plotly.graph_objs as go
 
@@ -7,6 +7,16 @@ plot_background_color = "rgba(180, 180, 180, 0.0)"
 custom_grey = "rgba(180, 180, 180, 0.6)"
 custom_blue = '#0069D9'
 
+comp_group_ordering = ['$0 to $24999',
+                       '$25000 to $49999',
+                       '$50000 to $74999',
+                       '$75000 to $99999',
+                       '$100000 to $124999',
+                       '$125000 to $149999',
+                       '$150000 to $174999',
+                       '$175000 to $199999',
+                       '$200000 to $224999',
+                       '$225000 to $249999']
 
 def figure_settings_salary_graph(figure):
 
