@@ -33,8 +33,8 @@ if insert is True:
 
 
 # Find data by object ID
-survey_data = collection.find()[1]
-language_info = collection.find()[0]['index']
+survey_data = collection.find()[0]
+language_info = collection.find()[1]['index']
 
 # Create Dataframe using the dictionary keys returned by .find()
 survey_data = pd.DataFrame(columns=survey_data['columns'], data=survey_data['data'])
