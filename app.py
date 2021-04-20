@@ -14,6 +14,9 @@ pd.set_option("display.max_columns", 50)
 pd.set_option("display.max_rows", 400000)
 pd.set_option("display.width", 1000)
 
+# Create app instance & server
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 
 def figure_to_dcc_object(figure):
     figure.update_layout(hovermode=False)
@@ -44,9 +47,9 @@ def get_job_sat_percent(jobsat, option='satisfied'):
     :return: A integer percentage of respondents satisfaction value
     """
     mood = ''
-    if option is 'satisfied':
+    if option == 'satisfied':
         mood = ['Very satisfied', 'Slightly satisfied']
-    if option is 'dissatisfied':
+    if option == 'dissatisfied':
         mood = ['Very dissatisfied', 'Slightly dissatisfied']
     jobsat = jobsat.groupby('JobSat')['Respondent'].count()
     total = jobsat.sum()
@@ -80,9 +83,7 @@ ed_level_dict = {'I never completed any formal education': 0,
                     'Professional degree (JD, MD, etc.)': 6,
                     np.nan: 0}
 
-# Create app instance & server
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
+
 
 # Create list for for ordering ConvertedCompGroup Categories
 comp_group_ordering = ['$0 to $24999',
