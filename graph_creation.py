@@ -1,6 +1,7 @@
 from load_data import language_info
 import pandas as pd
 import plotly.graph_objs as go
+import numpy as np
 
 plot_background_color = "rgba(180, 180, 180, 0.0)"
 
@@ -17,6 +18,16 @@ comp_group_ordering = ['$0 to $24999',
                        '$175000 to $199999',
                        '$200000 to $224999',
                        '$225000 to $249999']
+
+ed_level_dict = {'I never completed any formal education': 0,
+                     'Primary/elementary school': 1,
+                     'Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)': 2,
+                     'Some college/university study without earning a degree': 3,
+                    'Bachelor’s degree (BA, BS, B.Eng., etc.)': 4,
+                     'Associate degree': 4,
+                    'Master’s degree (MA, MS, M.Eng., MBA, etc.)': 5,
+                    'Other doctoral degree (Ph.D, Ed.D., etc.)': 6,
+                    'Professional degree (JD, MD, etc.)': 6}
 
 
 
@@ -180,16 +191,23 @@ def age_comparison_graph(figure, survey_data, age):
                             x=age_group['Age'],
                             orientation='h',
                             marker_color=custom_grey,
-                            name='Average Age'))
+                            name='Average Age',
+                            text=[f"{int(x)}" for x in age_group['Age']],
+                            textfont=dict(size=14),
+                            textposition='outside'))
 
     figure.add_trace(go.Bar(y=['You'],
                             x=[age],
                             orientation='h',
                             name='You',
-                            marker_color=custom_blue))
+                            marker_color=custom_blue,
+                            text=f"{int(age)}",
+                            textfont=dict(size=16, color='white'),
+                            textposition='inside'))
 
     # Graph Settings
     figure.update_layout(autosize=True,
+                         xaxis_visible=False,
                          paper_bgcolor=plot_background_color,
                          plot_bgcolor=plot_background_color,
                          margin=dict(l=0, r=0, t=20, b=0),
@@ -210,6 +228,7 @@ def age_comparison_graph(figure, survey_data, age):
         font=dict(size=18)))
 
     # Custom Y Ticks
+    # Should do this with a list comprehension.
     y_tick_text = ['$0 to $24K', '$25K to $49K', '$50K to $74K', '$75K to $99K', '$100K to $124K', '$125K to $149K', '$150K to $174K', '$175K to $199K', '$200K to $224K', '$225K to $250K']
     y_tick_text = y_tick_text[::-1]
 
@@ -232,7 +251,7 @@ def language_comparison_graph(figure, survey_data, languages):
     # print ('Language Comparison Graph Function')
 
     # Repeated code from give_advice function in app.py
-    # Possibly worth converting to a function because it's used twice indentically
+    # Possibly worth converting to a function because it's used twice identically
 
     # List of languages not known by the user
     language_not_known = [x for x in language_info if x not in languages]
@@ -352,6 +371,55 @@ def jobsat_comparison_graph(figure, people_like_you, higher_earners):
     return figure
 
 
+def education_level_graph(figure, people_like_you, higher_earners, edlevelval):
 
+    edu_higher_earners = higher_earners.groupby(['EdLevel', 'EdLevelVal'])['Respondent'].count().reset_index().sort_values('Respondent', ascending=False)
+    edu_higher_earners['Percentage'] = round((edu_higher_earners['Respondent'] / edu_higher_earners['Respondent'].sum()) * 100)
 
+    most_common_edu_level = edu_higher_earners.iloc[[0]]
+    other_edu_levels = edu_higher_earners[1:5].sort_values('Percentage', ascending=True)
 
+    # Graph Creation
+    figure.add_trace(go.Bar(x=other_edu_levels['Percentage'],
+                            y=other_edu_levels['EdLevel'],
+                            orientation='h',
+                            marker_color=custom_grey,
+                            text=[f"{round(x)}%" for x in other_edu_levels['Percentage']],
+                            textfont=dict(size=14),
+                            textposition='outside'))
+
+    figure.add_trace(go.Bar(x=most_common_edu_level['Percentage'],
+                            y=most_common_edu_level['EdLevel'],
+                            orientation='h',
+                            marker_color=custom_blue,
+                            text=[f"{round(x)}%" for x in most_common_edu_level['Percentage']],
+                            textfont=dict(size=16, color='white'),
+                            textposition='inside'))
+
+    # Get Shortened Y Tick Texts
+    education_levels = edu_higher_earners['EdLevel'].unique()
+    y_tick_text = [x.split('(')[0].rstrip() for x in education_levels]
+    y_tick_text = [x.replace('without earning a degree', '') for x in y_tick_text]
+
+    ed_level_order = [x for x in ed_level_dict.keys() if x in education_levels]
+
+    # Y Axis Settings
+    figure.update_yaxes(tickmode='array',
+                        tickvals=education_levels,
+                        ticktext=y_tick_text,
+                        tickfont=dict(size=16),
+                        categoryorder='array',
+                        categoryarray=ed_level_order)
+
+    # Graph Settings
+    figure.update_layout(autosize=True,
+                         xaxis_visible=False,
+                         paper_bgcolor=plot_background_color,
+                         plot_bgcolor=plot_background_color,
+                         margin=dict(l=30, r=30, t=70, b=0),
+                         title='<b>Education Level of Higher Earners</b>',
+                         title_font_size=20,
+                         showlegend=False
+                         )
+
+    return figure

@@ -37,30 +37,17 @@ language_list = language_info
 comp_group_list = (list(survey_data['ConvertedCompGroup'].unique()))
 age_group_list = sorted(list(survey_data['AgeGroup'].unique()))
 
-ed_level_dict = {'I never completed any formal education': 0,
-                     'Primary/elementary school': 1,
-                     'Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)': 2,
-                     'Some college/university study without earning a degree': 3,
-                    'Bachelor’s degree (BA, BS, B.Eng., etc.)': 4,
-                     'Associate degree': 4,
-                    'Master’s degree (MA, MS, M.Eng., MBA, etc.)': 5,
-                    'Other doctoral degree (Ph.D, Ed.D., etc.)': 6,
-                    'Professional degree (JD, MD, etc.)': 6,
-                    np.nan: 0}
-
-
-
 # Create list for for ordering ConvertedCompGroup Categories
-comp_group_ordering = ['$0 to $24999',
-                       '$25000 to $49999',
-                       '$50000 to $74999',
-                       '$75000 to $99999',
-                       '$100000 to $124999',
-                       '$125000 to $149999',
-                       '$150000 to $174999',
-                       '$175000 to $199999',
-                       '$200000 to $224999',
-                       '$225000 to $249999']
+# comp_group_ordering = ['$0 to $24999',
+#                        '$25000 to $49999',
+#                        '$50000 to $74999',
+#                        '$75000 to $99999',
+#                        '$100000 to $124999',
+#                        '$125000 to $149999',
+#                        '$150000 to $174999',
+#                        '$175000 to $199999',
+#                        '$200000 to $224999',
+#                        '$225000 to $249999']
 survey_data['ConvertedCompGroup'] = pd.Categorical(survey_data['ConvertedCompGroup'],
                                                    categories=comp_group_ordering,
                                                    ordered=True)
@@ -124,8 +111,8 @@ hidden_json = html.Div(id='hidden_json', style={'display': 'none'})
 title = html.H1('Salary Comparison', style={'textAlign': 'center'})
 
 col_1_layout = html.P('''
-                This dashboard allows users to compare their current skill set to other programmers across the world.
-                It also outputs information unique to the user giving them a breakdown of the differences between
+                This dashboard allows users to compare themselves to programmers across the world based on their own unique profile.
+                It also outputs information and charts unique to the user giving them a breakdown of the differences between
                 them, and the other respondents.
                 '''),\
                html.P('''
@@ -202,7 +189,9 @@ app.layout = dbc.Container([
                                                                    dcc.Tab(label='Languages Known',
                                                                            value='language_comparison_graph'),
                                                                    dcc.Tab(label='Job Satisfaction',
-                                                                           value='jobsat_comparison_graph')]),
+                                                                           value='jobsat_comparison_graph'),
+                                                                   dcc.Tab(label='Education Level',
+                                                                           value='edlevel_comparison_graph')]),
                                                 dbc.CardBody([dbc.Spinner(html.Div(id='tab_content'),
                                                                           size='xl',
                                                                           color="blue",
@@ -306,7 +295,6 @@ def create_data(age, edlevelval, languages, comp):
     # Outputs data as a json to a hidden div on the page, to be read by later functions
     json_data = data.to_json(orient='split')
     return json_data
-
 
 # @app.callback(
 #     Output(component_id='all_salaries_graph', component_property='figure'),
@@ -495,8 +483,11 @@ def give_advice(hidden_json_data, languages, age, comp, edlevelval):
                      f" in their job compared to {percent_satisfied_people_like_you}% of people similar to you"
 
     # Education Level
-    edu_high_earners = higher_earners[higher_earners['EdLevelVal'] >= edlevelval].groupby(['EdLevel', 'EdLevelVal'])['Respondent'].count().reset_index().sort_values('Respondent', ascending=False)
-    most_common_edu_level = edu_high_earners.iloc[[0]]['EdLevel'].values[0]
+
+
+    ####
+    edu_high_earners = higher_earners.groupby(['EdLevel', 'EdLevelVal'])['Respondent'].count().reset_index().sort_values('Respondent', ascending=False)
+    most_common_edu_level = edu_high_earners[edu_high_earners['EdLevelVal'] > edlevelval].iloc[[0]]['EdLevel'].values[0]
     most_common_edu_level = most_common_edu_level.split('(')[0]
 
     percent_higher_edlevelval = edu_high_earners[edu_high_earners['EdLevelVal'] > edlevelval]['Respondent'].sum() / edu_high_earners['Respondent'].sum()
@@ -506,7 +497,7 @@ def give_advice(hidden_json_data, languages, age, comp, edlevelval):
     if percent_higher_edlevelval > 0:
         ed_level_string_suffix = f"Schools in session!"
         ed_level_string = f"{ed_level_string_suffix} {percent_higher_edlevelval}% have a higher level of education than you." \
-                          f" With the most common being a {most_common_edu_level}"
+                          f" With the most common higher level qualification being a {most_common_edu_level}"
     if percent_higher_edlevelval == 0:
         ed_level_string = "School is not the problem! Those earning more than you have the same level of education."
 
@@ -617,5 +608,11 @@ def select_graph(hidden_json_data, tab, age, edlevelval, languages, comp):
         else:
             return error_string
 
+    if tab == 'edlevel_comparison_graph':
+        if None not in none_check_list:
+            figure = education_level_graph(figure, people_like_you, higher_earners, edlevelval)
+            return figure_to_dcc_object(figure)
+        else:
+            return error_string
 if __name__ == '__main__':
     app.run_server()
